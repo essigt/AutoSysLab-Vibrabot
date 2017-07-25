@@ -33,7 +33,7 @@ void SwarmBot::process(void)
     
     this->checkLight();
 
-
+    this->testCompass();
     
     if (counter == 1000) {
       counter = 0;
