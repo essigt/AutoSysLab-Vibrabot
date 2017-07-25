@@ -54,7 +54,10 @@ void SwarmBot::updateLED(void)
   lightRight = this->adc.getBrightness(1);
 
 
-  if (this->masterSlave.getMode() == MS_MODE_MASTER) {
+
+  if (this->masterSlave.getMode() == MS_MODE_SINGLE) {
+    this->rgbLed.setLEDColor(&ColorGreen);
+  } else if (this->masterSlave.getMode() == MS_MODE_MASTER) {
     this->rgbLed.setLEDColor(&ColorBlue);
     this->leftMotor.on();
     this->rightMotor.on();
