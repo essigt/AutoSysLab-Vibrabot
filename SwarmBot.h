@@ -8,7 +8,7 @@ typedef enum botState_e {BOT_STATE_MOVING_LEFT, BOT_STATE_MOVING_RIGHT, BOT_STAT
 const uint8_t STATE_MASTER = 0x01;
 const uint8_t STATE_SLAVE = 0x02;
 
-class LightBot : public Vibrabot {
+class SwarmBot : public Vibrabot {
 
 protected:
 //  botState_e state;

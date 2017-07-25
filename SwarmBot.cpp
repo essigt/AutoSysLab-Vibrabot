@@ -1,36 +1,45 @@
 
-#include "LightBot.h"
+#include "SwarmBot.h"
 #include "Arduino.h"
 
 
-void LightBot::init(void) {
+void SwarmBot::init(void) {
   Vibrabot::init();
+  
+  this->leftMotor.setPwmValue(120);
+  this->rightMotor.setPwmValue(120);
+  
   this->rgbLed.setLEDColor(&ColorOrange);
 }
 
-void LightBot::process(void)
+void SwarmBot::process(void)
 {
-  Vibrabot::process();
-  //  delay(2000);
+  //  adc.dump();
 
 
 
+  if (this->mainClock.isTick())
+  {
 
-  if (this->mainClock.isTick()) {
+    this->rgbLed.process();
+    this->processAnalogData();
 
+
+    //Master/Slave Proof of Concept
     this->sendMsg();
     this->checkMaster();
 
 
-
+    
     this->checkLight();
 
 
-
+    
     if (counter == 1000) {
       counter = 0;
     }
     counter++;
+
   }
 
 
@@ -40,7 +49,7 @@ void LightBot::process(void)
 extern void printData(char * text, uint16_t data);
 
 
-void LightBot::checkMaster(void) {
+void SwarmBot::checkMaster(void) {
 
   ComToken * token2;
 
@@ -77,7 +86,7 @@ void LightBot::checkMaster(void) {
 
 }
 
-void LightBot::sendMsg(void) {
+void SwarmBot::sendMsg(void) {
   if (counter % 500 == 0) { //twice a second
 
 
@@ -100,7 +109,7 @@ void LightBot::sendMsg(void) {
 }
 
 
-void LightBot::checkLight(void)
+void SwarmBot::checkLight(void)
 {
   uint16_t lightLeft;
   uint16_t lightRight;
@@ -149,7 +158,7 @@ void LightBot::checkLight(void)
 }
 
 
-void LightBot::executeState(void)
+void SwarmBot::executeState(void)
 {
 
 

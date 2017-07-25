@@ -6,11 +6,11 @@
 #include <Arduino.h>
 
 #include <Wire.h>
-#include "LightBot.h"
+#include "SwarmBot.h"
 
 
 // initialize library class
-LightBot bot;
+SwarmBot bot;
 
 
 
