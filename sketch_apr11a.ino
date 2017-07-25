@@ -17,7 +17,7 @@ SwarmBot bot;
 void setup() {
 
  Serial.begin(115200);
-
+  delay(2000); //Needed by UART to be ready
   bot.init();
 
 }
