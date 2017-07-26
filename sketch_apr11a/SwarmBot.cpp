@@ -32,6 +32,16 @@ void SwarmBot::process(void)
     this->rgbLed.process();
     this->processAnalogData();
 
+    if (counter == 2000) {
+      counter = 0;
+
+      if (this->masterSlave.getChannel(3)->getMode() == MS_MODE_MASTER && this->masterSlave.getChannel(0)->getMode() == MS_MODE_SINGLE ) {
+        motorRunSend = !motorRunSend;
+        this->masterSlave.setMasterPayload( motorRunSend );
+      }
+    }
+    counter++;
+
     this->masterSlave.process();
 
 
@@ -39,22 +49,22 @@ void SwarmBot::process(void)
     if (this->communicator.hasTokenToRead())
     {
       token =  this->communicator.readNextToken();
-      Serial.print("C:");
-      Serial.print(token->getChannel());
-      Serial.print(" Sig:");
-      Serial.println(token->getStrength());
-
-
-      //TODO Only pass token if it is a MasterToken
+      
       if (token->getHeader() == MS_TOKEN_HEADER) {
+        uint8_t payload = token->getData() >> 2;
+
+
+        motorRunRecived = payload == 1 ? true : false;
+
+        if(this->masterSlave.getChannel(0)->getMode() == MS_MODE_SLAVE ) {
+          this->masterSlave.setMasterPayload( motorRunRecived );
+        }
+        this->updateLED();
+
+
+
         this->masterSlave.passToken(token);
 
-        uint8_t payload = token->getData() >> 4;
-        Serial.print("P: ");
-        Serial.println(payload);
-
-        motorRunRecived = payload;
-        
       }
     }
 
@@ -63,27 +73,6 @@ void SwarmBot::process(void)
     this->updateLED();
 
 
-    if(counter == 2000) {
-      counter = 0;
-
-      Serial.print("SendP: ");
-      Serial.println(motorRunSend);
-
-      Serial.print("Mode: ");
-      Serial.println(this->masterSlave.getMode() );
-
-      Serial.print("Mode enter: ");
-      Serial.println(this->masterSlave.getMode() == MS_MODE_MASTER );
-         
-      if (this->masterSlave.getMode() == MS_MODE_MASTER ) {
-        motorRunSend = !motorRunSend;
-         this->masterSlave.setMasterPayload( motorRunSend );
-         Serial.print("SendP: ");
-         Serial.println(motorRunSend);
-      }
-    }
-
-    counter++;
 
   }
 }
@@ -93,39 +82,42 @@ void SwarmBot::process(void)
 void SwarmBot::updateLED(void)
 {
   bool motorOn = false;
+  static uint8_t ledFlashCounter = 0;
 
   this->rgbLed.setLEDColor(&ColorBlue);
 
-  if (this->masterSlave.getMode() == MS_MODE_SINGLE) {
+  if (this->masterSlave.getChannel(0)->getMode() == MS_MODE_SINGLE && this->masterSlave.getChannel(3)->getMode() == MS_MODE_SINGLE) {
     this->rgbLed.setLEDColor(&ColorGreen);
-    //motorOn = true;
+    
+    motorOn = ledFlashCounter < 127;
+    ledFlashCounter++;
 
-  } else if (this->masterSlave.getMode() & MS_MODE_MASTER && this->masterSlave.getMode() & MS_MODE_SLAVE) {
+  } else if (this->masterSlave.getChannel(3)->getMode() == MS_MODE_MASTER && this->masterSlave.getChannel(0)->getMode() == MS_MODE_SLAVE) {
     this->rgbLed.setLEDColor(&ColorPurple);
 
     motorOn = motorRunRecived;
 
-  } else if (this->masterSlave.getMode() & MS_MODE_SLAVE) {
+  } else if (this->masterSlave.getChannel(0)->getMode() == MS_MODE_SLAVE) {
     this->rgbLed.setLEDColor(&ColorRed);
 
     motorOn = motorRunRecived;
 
-  } else if (this->masterSlave.getMode() & MS_MODE_MASTER) {
+  } else if (this->masterSlave.getChannel(3)->getMode() == MS_MODE_MASTER) {
     this->rgbLed.setLEDColor(&ColorBlue);
 
-    motorOn = motorRunSend;
+    motorOn = motorRunSend ;
 
   }
 
-  
-  
+
+
   if (motorOn) {
-    this->leftMotor.on();
-    this->rightMotor.on();
+    //this->leftMotor.on();
+    //this->rightMotor.on();
     this->redLed.ledOn();
   } else {
-    this->leftMotor.off();
-    this->rightMotor.off();
+    //this->leftMotor.off();
+    //this->rightMotor.off();
     this->redLed.ledOff();
   }
 }
@@ -133,32 +125,32 @@ void SwarmBot::updateLED(void)
 
 void SwarmBot::receiveLEDColor(void) {
   static uint8_t pos = 0;
-  static uint8_t r=0, g=0, b=0;
-  
+  static uint8_t r = 0, g = 0, b = 0;
+
   int incomingByte = 0;
   if (Serial.available() > 0) {
     // read the incoming byte:
     incomingByte = Serial.read();
 
-    if(pos == 0) {
+    if (pos == 0) {
       r = incomingByte - '0';
     }
-    if(pos == 1) {
+    if (pos == 1) {
       g = incomingByte - '0';
     }
-    if(pos == 2) {
+    if (pos == 2) {
       b = incomingByte - '0';
     }
 
     this->rgbLed.setLEDColor(r << 6, g << 6,  b << 6);
 
     pos++;
-    if(pos == 3) {
+    if (pos == 3) {
       pos = 0;
     }
     // say what you got:
     Serial.print("I received: ");
-    Serial.println(incomingByte- '0', DEC);
+    Serial.println(incomingByte - '0', DEC);
   }
 }
 
