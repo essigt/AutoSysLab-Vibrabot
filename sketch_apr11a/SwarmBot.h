@@ -8,6 +8,9 @@ class SwarmBot : public Vibrabot {
 
 protected:
 
+  uint16_t counter = 0;
+  bool motorRunSend = false;
+  bool motorRunRecived = false;
 public:
   
 
@@ -16,5 +19,6 @@ public:
   
  protected:
   void updateLED(void);
+  void receiveLEDColor(void);
 
 };
